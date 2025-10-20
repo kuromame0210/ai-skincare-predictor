@@ -20,6 +20,9 @@
 # production
 /build
 
+# sensitive files
+docss/read.txt
+
 # misc
 .DS_Store
 *.pem

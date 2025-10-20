@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app:*)",
+      "Bash(ls:*)",
+      "Bash(npm install:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run build:*)",
+      "WebFetch(domain:platform.openai.com)",
+      "Bash(pkill:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm start)",
+      "Bash(touch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh repo create:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)"
+    ],
+    "deny": []
+  }
+}

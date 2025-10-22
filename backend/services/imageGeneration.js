@@ -2,6 +2,7 @@ const OpenAI = require('openai');
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const sharp = require('sharp');
 
 // OpenAI クライアントの初期化
 const openai = new OpenAI({
@@ -48,11 +49,13 @@ const downloadImage = (url, filepath) => {
   });
 };
 
-// AI画像生成を実行
-const generateImage = async (sessionId, originalImagePath) => {
+// AI画像生成を実行（フロントエンドの実装をそのまま移植）
+const generateImage = async (sessionId, imageFile) => {
   try {
     console.log(`🎨 AI画像生成開始: ${sessionId}`);
-    
+    console.log("File size:", imageFile.size);
+    console.log("File type:", imageFile.type);
+
     // セッション状態を更新
     sessions.set(sessionId, {
       status: STATUS.PROCESSING,
@@ -61,10 +64,7 @@ const generateImage = async (sessionId, originalImagePath) => {
       startedAt: new Date().toISOString()
     });
 
-    // 画像ファイルを適切な形式で読み込み
-    const imageBuffer = fs.readFileSync(originalImagePath);
-    
-    // プロンプト
+    // プロンプト（フロントエンドと完全に同じ）
     const prompt = `
       Add subtle skin imperfections: light age spots, slightly dull skin, minor pores, faint under-eye circles. Keep natural appearance - same person and age with minor skincare neglect effects only.
     `;
@@ -78,35 +78,30 @@ const generateImage = async (sessionId, originalImagePath) => {
 
     let response;
     let modelUsed = "";
-    
+
+    // フロントエンドと同じ：gpt-image-1を試してからdall-e-2にフォールバック
     try {
-      // gpt-image-1 を最初に試す（フロントエンドと同じ順序）
-      console.log(`📡 gpt-image-1 で生成試行: ${sessionId}`);
-      const imageStream = fs.createReadStream(originalImagePath);
-      
+      console.log(`=== Trying gpt-image-1 ===`);
       response = await openai.images.edit({
         model: "gpt-image-1",
-        image: imageStream,
+        image: imageFile,
         prompt: prompt,
         n: 1,
-        size: "512x512",
+        size: "1024x1024",  // gpt-image-1は512x512未対応のため1024x1024を使用
       });
       modelUsed = "gpt-image-1";
       console.log(`✅ gpt-image-1 成功: ${sessionId}`);
     } catch (gptError) {
       console.log(`❌ gpt-image-1 失敗: ${sessionId}`, gptError.message);
-      
+      console.log(`=== Falling back to dall-e-2 ===`);
+
       try {
-        // dall-e-2 で画像編集を試す
-        console.log(`📡 dall-e-2 で生成試行: ${sessionId}`);
-        const imageStream2 = fs.createReadStream(originalImagePath);
-        
         response = await openai.images.edit({
           model: "dall-e-2",
-          image: imageStream2,
+          image: imageFile,
           prompt: prompt,
           n: 1,
-          size: "512x512",
+          size: "512x512",  // dall-e-2は512x512対応
           response_format: "url",
         });
         modelUsed = "dall-e-2";
@@ -140,20 +135,38 @@ const generateImage = async (sessionId, originalImagePath) => {
     // 生成画像を保存
     const generatedFilename = `generated_${sessionId}.jpg`;
     const generatedPath = path.join(__dirname, '../public/uploads', generatedFilename);
-    
+    const tempPath = `${generatedPath}.temp`;
+
     if (imageUrl.startsWith('data:')) {
       // base64データの場合
       const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, '');
-      fs.writeFileSync(generatedPath, base64Data, 'base64');
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      // Sharpで最適化して保存
+      await sharp(buffer)
+        .jpeg({ quality: 85, progressive: true })
+        .toFile(generatedPath);
     } else {
-      // URLからダウンロード
-      await downloadImage(imageUrl, generatedPath);
+      // URLからダウンロードして最適化
+      await downloadImage(imageUrl, tempPath);
+
+      // Sharpで最適化
+      await sharp(tempPath)
+        .jpeg({ quality: 85, progressive: true })
+        .toFile(generatedPath);
+
+      // 一時ファイルを削除
+      fs.unlinkSync(tempPath);
     }
+
+    // 最適化後のファイルサイズを確認
+    const stats = fs.statSync(generatedPath);
+    console.log(`💾 Generated image saved: ${(stats.size / 1024).toFixed(2)}KB`);
 
     // 結果を保存
     const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
     const result = {
-      originalUrl: `${baseUrl}/images/original_${sessionId}.jpg`,
+      originalUrl: `${baseUrl}/images/original_${sessionId}.png`,  // .png に修正
       generatedUrl: `${baseUrl}/images/${generatedFilename}`,
       modelUsed: modelUsed,
       createdAt: sessions.get(sessionId).startedAt,

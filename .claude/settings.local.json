@@ -16,7 +16,11 @@
       "Bash(git commit:*)",
       "Bash(gh repo create:*)",
       "Bash(git remote add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(node -e:*)",
+      "WebSearch",
+      "Bash(node --version:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/frontend/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -13,15 +14,20 @@
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
+# next.js (frontend)
+/frontend/.next/
+/frontend/out/
 
 # production
 /build
 
 # sensitive files
 docss/read.txt
+
+# backend uploads (temporary files)
+/public/uploads/*.jpg
+/public/uploads/*.png
+!/public/uploads/.gitkeep
 
 # misc
 .DS_Store

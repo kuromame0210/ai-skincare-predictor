@@ -1,0 +1,19 @@
+services:
+  # Backend API Service
+  - type: web
+    name: skincare-backend
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 22.18.0
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: BASE_URL
+        sync: false
+      - key: PORT
+        value: 10000
+    healthCheckPath: /health

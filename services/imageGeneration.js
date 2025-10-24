@@ -164,7 +164,7 @@ const generateImage = async (sessionId, imageFile) => {
     console.log(`💾 Generated image saved: ${(stats.size / 1024).toFixed(2)}KB`);
 
     // 結果を保存
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
+    const baseUrl = (process.env.BASE_URL || 'http://localhost:3001').replace(/\/$/, ''); // 末尾スラッシュを除去
     const result = {
       originalUrl: `${baseUrl}/images/original_${sessionId}.png`,  // .png に修正
       generatedUrl: `${baseUrl}/images/${generatedFilename}`,

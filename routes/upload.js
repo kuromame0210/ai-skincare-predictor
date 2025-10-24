@@ -96,7 +96,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
 
     console.log(`🚀 AI generation started in background for session: ${sessionId}`);
 
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
+    const baseUrl = (process.env.BASE_URL || 'http://localhost:3001').replace(/\/$/, ''); // 末尾スラッシュを除去
     res.json({
       success: true,
       data: {

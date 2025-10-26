@@ -14,9 +14,9 @@
 # testing
 /coverage
 
-# next.js (frontend)
-/frontend/.next/
-/frontend/out/
+# next.js (frontend) - No longer used, moved to backend-only
+/frontend/
+/.next/
 
 # production
 /build
